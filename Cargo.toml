@@ -1,0 +1,61 @@
+[package]
+name = "rust_ppocrv6"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "PP-OCRv6 inference engine and OCR library in Rust, without ONNXRuntime/LibTorch C++ dependencies"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/czxichen/rust_ppocrv6"
+keywords = ["ocr", "ppocr", "inference", "computer-vision", "deep-learning"]
+categories = ["computer-vision", "science"]
+# Keep the multi-megabyte model blobs and historical profiling dumps out of the
+# published crate. They are still tracked in the git repository.
+exclude = ["models/", "models_v6/", "profile_dump.txt", "target/", ".venv/"]
+
+[lib]
+name = "ppocr"
+path = "src/lib.rs"
+
+[dependencies]
+safetensors = "0.5"
+matrixmultiply = "0.3"
+rayon = "1.10"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+bytemuck = "1.20"
+faer = "0.24.4"
+# Optional ONNX support: compile with `cargo ... --features onnx` to enable
+# `Model::load_onnx` / `Model::load` automatic `.onnx` dispatch.
+onnx-ir = { version = "0.21.0", optional = true }
+protobuf = { version = "3.7.2", features = ["with-bytes"], optional = true }
+
+[features]
+default = ["onnx"]
+# Native .onnx parsing + `Model::load_onnx`. Enabled by default; disable with
+# `--no-default-features` to drop the embedded-protobuf machinery.
+onnx = ["dep:onnx-ir", "dep:protobuf"]
+
+# NOTE: `panic = "abort"` is intentionally NOT set here. This crate is published as
+# a library (`[lib] name = "ppocr"`), and a `panic = "abort"` profile is inherited by
+# every downstream consumer, which would make it impossible for an embedding service
+# to catch a malformed image at its request boundary. A binary that wants abort
+# semantics can set it in its own workspace profile.
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 16
+strip = false
+
+[dev-dependencies]
+criterion = { version = "0.7.0", default-features = false, features = ["cargo_bench_support"] }
+
+# Operator-level latency benchmarks: `cargo bench --bench ops`.
+[[bench]]
+name = "ops"
+harness = false
+
+[package.metadata.docs.rs]
+all-features = true

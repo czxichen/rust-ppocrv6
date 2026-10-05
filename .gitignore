@@ -1,0 +1,11 @@
+/target
+/.venv
+/test_models
+/models_v6
+
+# Profiling dump written by tools/audit_profile.py — a build artefact, not source.
+/profile_dump.txt
+onnxruntime_profile__*.json
+build_onnx/
+build_onnx
+.ruff_cache/

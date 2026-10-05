@@ -1,0 +1,24 @@
+# Repository-local cargo configuration.
+#
+# Intentionally minimal: a file inside a repository overrides the *user's* cargo
+# configuration, so anything placed here is silently imposed on everybody who
+# clones this project (and on CI). In particular the two settings below used to
+# live here and have been removed:
+#
+#   [source.crates-io] replace-with = 'tuna'
+#       Silently redirected every developer's crates.io source to one mirror.
+#
+#   [build] rustflags = ["-C", "target-cpu=native"]
+#       Baked the build machine's exact CPU into the artifact, so a binary built
+#       here could crash with SIGILL on an older x86_64 (or ARM) host. It also
+#       overrode whatever the user had put in RUSTFLAGS.
+#
+# Both are still useful *locally* (maximum performance, slow networks). See the
+# "Advanced build options" section of README.md for the opt-in commands.
+#
+# `git-fetch-with-cli` stays: it makes cargo shell out to the system `git` for
+# git dependencies, which works around the TLS/network issues that are common
+# behind corporate proxies.
+
+[net]
+git-fetch-with-cli = true
